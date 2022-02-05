@@ -1,10 +1,9 @@
-import { Answer, Question } from "../types/QuizType";
 import NormalButton from "./NormalButton";
 import * as React from 'react';
-import { arrShuffle } from "../quiz/QuizPrepare";
+import { AnswerPrepare, arrShuffleShallowly, QuestionPrepare } from "../quiz/QuizPrepare";
 
 interface QuestionType1Props {
-    q:Question,
+    q:QuestionPrepare,
     /**Function to run after Submit Question, used for OneOneQuiz */
     moveOn?:Function,
     /**Function to run before Submit Question, used for OneTenQuiz */
@@ -18,7 +17,7 @@ export const QuestionType1: React.FC<QuestionType1Props> = ({q,moveOn=()=>{},mov
     const showAnswerState=React.useState(false);
     const needToSelect=React.useRef(0);
     const selected=React.useState(0);
-    const answers=React.useState<Answer[]>([]);
+    const answers=React.useState<AnswerPrepare[]>([]);
     /** Used for SubmitButton and other (to simulate SubmitButtonClick) */
     const handleSubmit=()=>{
       if (showAnswerState[0]) {
@@ -37,7 +36,7 @@ export const QuestionType1: React.FC<QuestionType1Props> = ({q,moveOn=()=>{},mov
       })
       .reduce((p, c) => p + c);
       selected[1](0);
-      answers[1](arrShuffle(q.a));
+      answers[1](arrShuffleShallowly(q.a));
     }
     React.useEffect(()=>{
       prepareDisplay()
@@ -107,7 +106,7 @@ export const QuestionType1: React.FC<QuestionType1Props> = ({q,moveOn=()=>{},mov
 export default QuestionType1
 
 interface QuestionButtonProps {
-    a:Answer,
+    a:AnswerPrepare,
     activeState:boolean,
     onClick:Function
 }

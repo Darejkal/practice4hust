@@ -3,6 +3,7 @@ export type Poll={
     currentQues:number,
     poll:Question[]
 }
+
 export type Question={
     i:number;
     q:string;
@@ -22,3 +23,20 @@ export type Answer={
     c?:string;
     d?:string
 }
+// export const SamplePoll:Poll= {
+//     pollID : 0,
+//     currentQues : 0,
+//     poll : [
+//       {
+//         i: 0,
+//         q: "",
+//         a: [
+//           {
+//             i: 0,
+//             v: "",
+//             s: 0,
+//           },
+//         ],
+//       },
+//     ],
+//   };

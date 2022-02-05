@@ -1,6 +1,6 @@
-import { Poll } from "../types/QuizType";
+import { PollPrepare } from "../quiz/QuizPrepare";
 
-export const defaultQuiz:Poll = {
+export const defaultQuiz:PollPrepare = {
   pollID: 1642904549.1067722,
   currentQues:0,
   poll: [
