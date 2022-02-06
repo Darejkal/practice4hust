@@ -12,8 +12,8 @@ export let GlobalState={
     topBarHideChildren:true,
     quizPrepare:undefined as QuizPrepare|undefined,
     HomeView:{
-        changeView: undefined as Function|undefined,
+        changeView: ((v:QuizViewsType)=>{}) as ((v:QuizViewsType)=>void),
         currentView: undefined as QuizViewsType|undefined,
-        childUpdate: undefined as undefined|(()=>void)
+        childUpdate: undefined as undefined|(()=>void),
     }
 }

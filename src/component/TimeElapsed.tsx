@@ -20,7 +20,7 @@ const TimeElapsed: React.FC<TimeElapsedProps> = props => {
             clearInterval(_t);
         }
     },[])
-    return <div className="TimeElapsed">
+    return <div className="TimeElapsed" key={"TimeElapsed"}>
         <span>Time Elapsed: {show2charnum(Math.floor(t/3600))}</span>
         <span style={{opacity:s?"100%":"50%"}}>:</span>
         <span>{show2charnum(Math.floor(t%3600/60))}</span>

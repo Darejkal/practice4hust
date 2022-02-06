@@ -9,26 +9,28 @@ import { PollPrepare, QuestionPrepare, QuizPrepare } from './QuizPrepare';
 import QuizTopBar from './QuizTopBar';
 
 interface OneTenQuizProps {
-    poll:PollPrepare|string;
-    changeView:Function
 }
 
 const OneTenQuiz: React.FC<OneTenQuizProps> = props => {
     const loading=React.useState(true);
     const currentQuestArr=React.useState<QuestionPrepare[]>();
-    const needToSelect=React.useState(10);
+    const needToSelect=React.useState(0);
     React.useEffect(()=>{
-        if (!GlobalState.quizPrepare) {
-            GlobalState.quizPrepare=new QuizPrepare(props.poll)
-            GlobalState.quizPrepare.shuffle()
-        }        
+      if(GlobalState.quizPrepare){      
       GlobalState.HomeView.childUpdate=()=>{
         currentQuestArr[1](GlobalState.quizPrepare?.getCurrentArr());    
         console.log("updated")  
       }
         currentQuestArr[1](GlobalState.quizPrepare.getCurrentArr());
         loading[1](false);
+    } else{
+      alert("Unknown Error occured. NL00002")
+      GlobalState.HomeView.changeView("EnteringMenu")
+    }
     },[])
+    React.useEffect(()=>{
+      currentQuestArr[0]&&needToSelect[1](currentQuestArr[0].length)
+    },[currentQuestArr[0]])
   return (
     <div
       className="OneTenQuiz"
@@ -38,7 +40,7 @@ const OneTenQuiz: React.FC<OneTenQuizProps> = props => {
       }}
     >
       <QuizTopBar>
-      <div>{`Need To Select: ${needToSelect[0]}`}</div>
+      <div key={"NeedToSelect"}>{`Need To Select: ${needToSelect[0]}`}</div>
       </QuizTopBar>
       <div
         style={{
@@ -81,31 +83,31 @@ const OneTenQuiz: React.FC<OneTenQuizProps> = props => {
             </NormalButton>
           </div> */}
           <div>
-            <NormalButton
+            {!(GlobalState.quizPrepare&&GlobalState.quizPrepare.getCurrentIndex()+GlobalState.quizPrepare.getCurrentArr().length ===
+                GlobalState.quizPrepare.getPollLength())&&<NormalButton
               style={{ padding: "5px 40px 5px 40px", marginTop: "10px" }}
               onClick={() => {
                 currentQuestArr[1](GlobalState.quizPrepare?.leapOn());
-                needToSelect[1](10)
+                needToSelect[1](currentQuestArr[0]?currentQuestArr[0].length:0)
                 window.scrollTo(0,0)
               }}
               _active={true}
               disabled={
-                needToSelect[0]>0||
-                GlobalState.quizPrepare&&GlobalState.quizPrepare.getCurrentIndex() ===
-                GlobalState.quizPrepare.getPollLength() - 1
+                needToSelect[0]>0
               }
             >
               {"Next >>>"}
-            </NormalButton>
+            </NormalButton>}
           </div>
         </div>
         {GlobalState.quizPrepare&&GlobalState.quizPrepare?.getCurrentIndex() ===
               GlobalState.quizPrepare!.getPollLength() - 1 && (
               <div style={{margin:"5px auto 5px auto"}}>
                 <NormalButton onClick={()=>{
-                    GlobalState.quizPrepare?.shuffle()
+                    GlobalState.quizPrepare?.shuffle(true)
+                    let temp=GlobalState.quizPrepare?.getCurrentArr()
+                    if(temp!.length<=1) GlobalState.HomeView.changeView("OneOneQuiz") 
                     currentQuestArr[1](GlobalState.quizPrepare?.getCurrentArr());
-                    needToSelect[1](10)
                     window.scrollTo(0,0)
                 }} disabled={needToSelect[0]>0} _active={true}>{`Submit&Restart`}</NormalButton>
               </div>

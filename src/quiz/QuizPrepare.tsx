@@ -45,12 +45,11 @@ export function arrShuffleShallowly(array: any[]): any[] {
  * @param filename name of the exported file (default is newfile)
  * @param type type of the exported file (default is txt)
  */
-function fDownload(
+function fExport(
   data: string,
   filename: string = "newfile",
   type: string = "text/plain"
 ) {
-  filename = JSON.stringify(filename);
   var file = new Blob([data], { type: type });
   var a = document.createElement("a"),
     url = URL.createObjectURL(file);
@@ -62,6 +61,9 @@ function fDownload(
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }, 0);
+} 
+function fDownload(url:string) {
+  throw new Error("Function not implemented")
 }
 /**
  * Open a generic file
@@ -82,11 +84,11 @@ function fOpen(
   input.click();
   input.addEventListener("change", callback);
 }
-/**
- *
- * @param callback Function to call when Object is get. If callback return false, Error alert is called
- * @param errorHandle Function to call if error is caught
- * @param type Type of the receiving file
+/**(Generic Function)
+ * Check if value and its properties contains all properties as sample. Kind of like the idea InstanceOf (without all methods)
+ * @param value value to compare
+ * @param sample sample of the desired object for comparison, can work for class
+ * @returns True/False
  */
 function checkIfValid<T>(value: any, sample: T): boolean {
   if (typeof sample === "undefined") return true;
@@ -120,12 +122,18 @@ function checkIfValid<T>(value: any, sample: T): boolean {
     return typeof value === typeof sample;
   }
 }
+/**
+ *
+ * @param callback Function to call when Object is get. If callback return false, Error alert is called
+ * @param errorHandle Function to call if error is caught
+ * @param type Type of the receiving file
+ */
 function importJsonFile<Type>(
   callback: (value: Type) => void,
   errorHandle: () => void,
   sampleOfResult: Type
 ) {
-  fOpen(".json", (evt) => {
+  fOpen("", (evt) => {
     try {
       //@ts-ignore
       var files = evt?.target?.files;
@@ -186,44 +194,62 @@ function getDeshuffledArrByID<T>(orignalArr: T[], ID: keyof T) {
 
 // }
 export class QuizPrepare {
-  private _pollID = -1;
+  _pollID = -1;
   // _currentQues is index of current question
   private _currentQues = 0;
   private _poll: QuestionPrepare[] = [];
-  constructor(p: PollPrepare | string) {
-    this.initialize(p);
+  constructor(p: PollPrepare ) {
+    this._pollID = p.pollID;
+    this._currentQues = p.currentQues;
+    this._poll = p.poll;
   }
   /**
    * QuizPrepare constructor call this function
    * Use this when QuizPrepare need reinitialized
    * @param p new Poll to (re)initialize from
    */
-  private initialize(p: PollPrepare | string) {
+  private initialize(p: PollPrepare | string,onDone:(p:PollPrepare)=>void=()=>{}) {
     if (typeof p === "string") {
-      fetch(p, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      })
-        .then((respond: any) => {
-          if (!respond.ok) throw new Error(respond.statusText);
-          let _p: PollPrepare = respond.json();
-          this._pollID = _p.pollID;
-          this._currentQues = _p.currentQues;
-          this._poll = _p.poll;
-        })
-        .catch((e) => {
+      try{
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", p);
+      xhr.onreadystatechange = function () {
+         if (xhr.readyState === 4) {
+            console.log(xhr.responseText);
+            onDone(JSON.parse(xhr.responseText) as PollPrepare);
+         }};
+      
+      xhr.send();
+        } catch(e) {
           alert(
             "Error while getting the question deck.\nPlease check if the link provided is valid."
           );
-        });
+        };
     } else {
       this._pollID = p.pollID;
       this._currentQues = p.currentQues;
       this._poll = p.poll;
+    }
+  }
+  static initialize(p: PollPrepare | string,onDone:(p:QuizPrepare)=>void=()=>{}) {
+    if (typeof p === "string") {
+      try{
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", p);
+      xhr.onreadystatechange = function () {
+         if (xhr.readyState === 4) {
+            onDone(new QuizPrepare(JSON.parse(xhr.responseText) as PollPrepare));
+         }};
+      
+      xhr.send();
+        } catch(e) {
+          console.log(e)
+          alert(
+            "Error while getting the question deck.\nPlease check if the link provided is valid."
+          );
+        };
+    } else {
+      onDone(new QuizPrepare(p))
     }
   }
   /**Shuffle the poll's order
@@ -336,28 +362,42 @@ export class QuizPrepare {
       currentQues: this._currentQues,
       poll: this.getPollOriginalOrder(),
     };
-    fDownload(
+    fExport(
       JSON.stringify(e),
-      "QuizExport" + (name ? name : yyyymmdd(new Date())) + ".json",
+      "QuizExport" + (name ? name : yyyymmdd(new Date())),
       "application/json"
     );
   }
-  static importFromJson(callback: (v: PollPrepare) => void) {
+  /**
+   * Import ClassPrepare from JSON 
+   * @param callback use this to assign imported Object
+   * */
+  static importLocalFromJson(callback: (v: PollPrepare) => void):void {
     importJsonFile<PollPrepare>(callback
     , () => {}, SamplePoll);
   }
-  private importFromJson() {
+  /**
+   * Import ClassPrepare from JSON and make change **IN PLACE** to the calling Instance
+   * @param callback use this to do stuffs after import is done
+   * @returns True/False depends on whether the import is successful or not
+   * */
+  importLocalFromJson(callback: (v: PollPrepare) => void=()=>{}):boolean {
     let done = false;
     importJsonFile<PollPrepare>(
       (v) => {
         this.initialize(v);
         this.shuffle();
         done = true;
+        callback(v)
       },
       () => {},
       SamplePoll
     );
     return done;
+  }
+  importExternalFromJson(url:string){
+    throw new Error("Function not implemented")
+    fDownload(url)
   }
 }
 export class PollPrepare {

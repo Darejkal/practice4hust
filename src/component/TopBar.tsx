@@ -21,10 +21,12 @@ const TopBar: React.FC<TopBarProps> = props => {
         paddingBottom: "5px",
         backgroundColor: "#FF9F45",
         display: "flex",
+        flexWrap:"wrap"
       }}
     >
       {!hideChildren[0] && props.children}
       <NormalButton
+        key={"hideChildren"}
         onClick={() => {
           hideChildren[1]((t) => {
             GlobalState.topBarHideChildren=!t
